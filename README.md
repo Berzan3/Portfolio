@@ -65,7 +65,7 @@ Portfolio/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/AndreasBz/Portfolio.git
+   git clone https://github.com/Berzan3/Portfolio.git
    cd Portfolio
    ```
 
@@ -87,7 +87,7 @@ Portfolio/
 3. Select "Deploy from a branch"
 4. Choose "main" branch and "/" (root) folder
 5. Click Save
-6. Your site will be available at `https://andreasbz.github.io/Portfolio/`
+6. Your site will be available at `https://Berzan3.github.io/Portfolio/`
 
 ## 🎨 Customization
 
