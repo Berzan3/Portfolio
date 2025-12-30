@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Quill Sisters - Dev Portfolio</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="../js/main.js" defer></script>
+</head>
+<body>
+<!-- Navigation Header -->
+<header>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <h1>Andreas Berzelius</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../projects.html" class="active">Projects</a></li>
+                <li><a href="../cv.html">CV</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<main class="project-detail">
+    <div class="detail-header">
+        <h2>The Quill sisters</h2>
+        <h3>made back in around 2020</h3>
+        <p class="tagline">A third person hack-and-slash game in an egyptian setting</p>
+        <div class="project-tags">
+            <span class="tag">Unity</span>
+            <span class="tag">C#</span>
+            <span class="tag">PC</span>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <div class="media-grid">
+            <div class="media-item">
+                <video controls>
+                    <source src="../assets/the_quill_sisters/the_quill_sisters_gameplay.webm" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <h3>Overview</h3>
+        <p>
+            The Quill sisters is a third person hack n slash in an egypt setting.
+            You play as Ashley ‘Ash’ Quill searching for her lost sister Zoë Quill in the pyramids of egypt.
+            On her way Ash finds a bracelet that will change her life forever.
+        </p>
+    </div>
+
+    <div class="detail-section">
+        <h3>Notable stuff</h3>
+        <div class="workflow-list">
+            <ul>
+                <li>creating the smaller enemies</li>
+                <li>making controls remappable</li>
+                <li>creating Menu UI inside unity</li>
+                <li>Poison shader</li>
+                <li>Skull shader</li>
+                <li>Poison Particles</li>
+                <li>The team size was 9</li>
+                <li>development time was around 9 weeks</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <h3>My role</h3>
+        <p>
+            My roles in the project are Engineer and UI/UX designer.
+            Most of my engineering tasks consist of constructing the different enemies we have.
+            My UI/UX tasks consist mostly of making the different menus and ui-elements in the game.
+        </p>
+        <br />
+        <h4>One of My tasks - Engineer</h4>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_last_boss.gif" alt="TQS last boss">
+        </div>
+
+        <p>
+            One of my assignments was to make projectile attacks for our last Boss “Zoe the anathematized”.
+        </p>
+
+        <br />
+        <h4>Poison Throw</h4>
+        <p>
+            One of her attacks was supposed to be some sort of ranged poison attack coming from her when she attacks the player.
+            I thought of making some sort of poison projectile using particle effects.
+        </p>
+        <br />
+
+        <p>
+            I started by making a shader with a nice texture I found and applied that to a material.
+        </p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_shader.gif" alt="TQS poison shader">
+        </div>
+
+        <br />
+        <p>
+            Then I started making the projectile system.
+            I wanted the particle system to emit a fast short burst because
+            it would be activated when the Boss would attack the player with the staff.
+        </p>
+
+        <div class="media-grid">
+            <div class="media-item">
+                <img src="../assets/the_quill_sisters/TQS_facing_particles.gif" alt="TQS poison particles dead">
+            </div>
+            <div class="media-item">
+                <img src="../assets/the_quill_sisters/TQS_particles_right.gif" alt="TQS poison particles right">
+            </div>
+        </div>
+
+        <p>
+            I also wanted the projectile system to spawn a puddle on the surface it hits
+            so to do that I made a subEmitter for the thrown poison and
+            assigned it to activate when the thrown poison collides with something.
+            The submitter just spawns the same particle as the thrown but without any movement and with a Horizontal billboard.
+        </p>
+        <br />
+        <p>
+            A problem that occurred was that the puddles didn’t spawn on the ground they spawned in the air.
+            This was because the collider of the thrown poison is a sphere collider and
+            because it’s so big the bottom of the sphere hits the ground and
+            spawns the puddle in the middle of the sphere instead of the bottom.
+        </p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_big_collider.gif" alt="TQS poison big collider">
+        </div>
+
+        <p>I fixed this by making the thrown poison collider very small.</p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_smol_collider.gif" alt="TQS poison small collider">
+        </div>
+
+        <p>
+            What remains was fixing the detection of the player using the particle system.
+            After some research the available options I found was either using the Collision or Trigger module.
+            The collision module is nice because it works much like OnCollisionEnter
+            I don’t even need to check if it hits the player because I can assign which layers it can collide with,
+            the only problem is that the projectiles thrown gets stuck on the player.
+            Using the Trigger module instead solves this, but you can’t easily check what it gets triggered by,
+            and it gets triggered even though it has an assigned collider it should only collide with.
+        </p>
+
+        <br />
+
+        <p>
+            My solution was to use the Trigger module for the thrownPoison and the Collision module for the poisonPuddle.
+        </p>
+
+    </div>
+
+    <div class="detail-section">
+        <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+        <div class="code-container" style="display: none;">
+            <p>PoisonThrown.cs</p>
+            <div class="code-snippet">
+                    <pre><code>
+namespace Entity.AI.Bosses.Zoe.Attacks
+{
+  /// &lt;summary&gt;
+  /// A script for triggering damage
+  /// from the PoisonThrown
+  /// &lt;/summary&gt;
+  public class PoisonThrown : MonoBehaviour
+  {
+      [SerializeField]
+      private float damage = 1f;
+      private ParticleSystem _poison;
+      private PlayerHealth _playerHealth;
+      private CharacterController _playerCollider;
+
+      private readonly List&lt;ParticleSystem.Particle&gt; _enter = new List&lt;ParticleSystem.Particle&gt;();
+
+      private void Start()
+      {
+          _poison = GetComponent&lt;ParticleSystem&gt;();
+          _playerHealth = FindObjectOfType&lt;PlayerHealth&gt;();
+          _playerCollider = _playerHealth.gameObject.GetComponent&lt;CharacterController&gt;();
+          _poison.trigger.SetCollider(0, _playerCollider);
+      }
+
+      private void OnParticleTrigger()
+      {
+          var enterPs = _poison.GetTriggerParticles(ParticleSystemTriggerEventType.Enter, _enter);
+          if (enterPs &gt;= 1)
+          {
+              _playerHealth.TakeDamage(damage);
+          }
+      }
+  }
+}
+                    </code></pre>
+            </div>
+        </div>
+    </div>
+    <div class="detail-section">
+        <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+        <div class="code-container" style="display: none;">
+            <p>PoisonPuddle.cs</p>
+            <div class="code-snippet">
+                    <pre><code>
+namespace Entity.AI.Bosses.Zoe.Attacks
+{
+  /// &lt;summary&gt;
+  /// A script for triggering damage on the player
+  /// from the poisonPuddles.
+  /// &lt;/summary&gt;
+  public class PoisonPuddle : MonoBehaviour
+  {
+      [SerializeField]
+      private float damage = 2f;
+      private PlayerHealth _playerHealth;
+      private const int PLAYER_LAYER = 9;
+
+      private void Start()
+      {
+          _playerHealth = FindObjectOfType&lt;PlayerHealth&gt;();
+      }
+
+      private void OnParticleCollision(GameObject other)
+      {
+          if (other.layer == PLAYER_LAYER)
+          {
+              _playerHealth.TakeDamage(damage);
+          }
+      }
+  }
+}
+                    </code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <h4>Poison Fan</h4>
+        <p>
+            The second attack I was assigned to make was a projectile attack with a row of projectiles in a half circle
+        </p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_poison_fan_boss.gif" alt="TQS poison fan boss">
+        </div>
+
+        <p>
+            By reusing the shader for the PoisonThrow and rescaling a sphere i could make something that looks like a projectile.
+        </p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_poison_projectile.gif" alt="TQS poison projectile">
+        </div>
+
+        <p>
+            Then I just made a prefab which holds five projectiles in a half circle and made a script to manage aiming at the player.
+        </p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_poison_fan.gif" alt="TQS poison fan">
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+        <div class="code-container" style="display: none;">
+            <p>PoisonFan.cs</p>
+            <div class="code-snippet">
+                    <pre><code>
+namespace Entity.AI.Bosses.Zoe.Attacks
+{
+  /// &lt;summary&gt;
+  /// A script for aiming the projectiles in the right direction
+  /// before releasing them.
+  /// &lt;/summary&gt;
+  public class PoisonFan : MonoBehaviour
+  {
+      [SerializeField]
+      private ScriptObjRef&lt;Vector3&gt; playerPosition;
+
+      private bool _shot;
+      private Rigidbody _projectileRB;
+
+      private void Start()
+      {
+          Projectile.Ready += StopLookAt;
+      }
+
+      private void StopLookAt()
+      {
+          _shot = true;
+      }
+
+      private void Update()
+      {
+          if (!_shot)
+          {
+              gameObject.transform.LookAt(playerPosition.Value + Vector3.up);
+          }
+      }
+  }
+}
+                    </code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <p>
+            I made a script for the projectiles to fire in the parents transform and
+            I also made a simple animation for the projectiles that fires an
+            animation event when they are in a projectile looking scale that unparents them and lets them go
+        </p>
+
+        <div class="media-item">
+            <img src="../assets/the_quill_sisters/TQS_poison_projectile_animation.gif" alt="TQS poison fan">
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+        <div class="code-container" style="display: none;">
+            <p>projectile.cs</p>
+            <div class="code-snippet">
+                    <pre><code>
+namespace Entity.AI.Bosses.Zoe.Attacks
+{
+  /// &lt;summary&gt;
+  /// A simple projectile script that heads
+  /// in parent direction.
+  /// &lt;/summary&gt;
+  public class Projectile : MonoBehaviour
+  {
+      public static Action Ready;
+      [SerializeField]
+      private float force = default;
+
+      private Rigidbody _rigidbody;
+      private float _damage;
+      private float _holdForce;
+      private Transform _parentTransform;
+
+      private const int PLAYER_LAYER = 9;
+
+      private void Start()
+      {
+          _parentTransform = transform.parent;
+          transform.rotation = _parentTransform.rotation;
+          _rigidbody = GetComponent&lt;Rigidbody&gt;();
+          _holdForce = force;
+          force = 0;
+      }
+
+      private void FixedUpdate()
+      {
+          _rigidbody.AddForce(_parentTransform.forward * (force * Time.deltaTime), ForceMode.Impulse);
+      }
+
+      private void OnTriggerEnter(Collider other)
+      {
+          if (!other) return;
+          if (other.gameObject.layer == PLAYER_LAYER)
+          {
+              other.gameObject.GetComponent&lt;Health&gt;().TakeDamage(5f);
+          }
+          Destroy(gameObject);
+      }
+
+      public void Release()
+      {
+          force = _holdForce;
+          Ready?.Invoke();
+          transform.parent = null;
+          transform.rotation = _parentTransform.rotation;
+      }
+  }
+}
+                    </code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <h3>The process</h3>
+        <p>
+            This was fun to make especially the poison particle system.
+            To see it splash on the ground and emit puddles is satisfying.
+        </p>
+    </div>
+
+    <div class="detail-section">
+        <h3>Challenges</h3>
+        <p>The biggest challenge for me was to understand the particle system detection in Unity.</p>
+    </div>
+
+    <div class="detail-section">
+        <h3>Iteration</h3>
+        <p>
+            Some things should have been reworked or updated, but I am quite happy how it is.
+            In the process I learned a bit more about Unity's particle system.
+        </p>
+    </div>
+
+    <a href="../projects.html" class="back-link">← Back to Projects</a>
+</main>
+
+<footer>
+    <p>&copy; 2025 Andreas Berzelius. All rights reserved.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders - Dev Portfolio</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="../js/main.js?v=2" defer></script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Andreas Berzelius</h1>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../projects.html" class="active">Projects</a></li>
+                    <li><a href="../cv.html">CV</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="project-detail">
+        <div class="detail-header">
+            <h2>Space Invaders</h2>
+            <h3>made back in around 2020</h3>
+            <p class="tagline">A space invader lookalike made in C++ and SDL2</p>
+            <div class="project-tags">
+                <span class="tag">C++</span>
+                <span class="tag">SDL2</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Overview</h3>
+            <p>
+                This is a much simpler remake of the game Space invaders
+                which I made in a c/c++ programming course at my university.
+                You move around the small green spaceship at the bottom of the screen,
+                trying to shoot and dodge the aliens slowly coming from the top of the screen.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Screenshots & Media</h3>
+            <div class="media-grid">
+                <div class="media-item">
+                    <video controls>
+                        <source src="../assets/space_invaders/space_invader_demo.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Functions</h3>
+            <h4>briefly about how the code works:</h4>
+            <p>
+            When the main class starts, it begins with creating an instance of player,
+                enemyfactory -components and adding the collision function to the session.
+            Then player and enemyFactory are added to a vector for session, then session.run(); starts
+            which fires the game loop in session. Session then plots its added components
+            in its vectors and decreases an int variable when any of the components are hit
+                by each other if the bool isCoolidable is true for that Component.
+            EnemyFactory creates 3 different formations of enemies.
+                Enemy movement and shooting patterns depends on an int time in session that is updated every tick.
+            Both player and enemy create an instance of the component bullet
+            when they fire a shot. If the bullet does not collide
+                with something before it reaches the edge of the screen then it is removed.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+            <div class="code-container" style="display: none;">
+                <p>Session.cpp:</p>
+                <div class="code-snippet">
+                    <pre><code>
+#include &quot;Session.h&quot;
+#include &lt;SDL.h&gt;
+#include &quot;Component.h&quot;
+#include &lt;iostream&gt;
+#include &quot;Label.h&quot;
+
+using namespace std;
+int points = 0;
+#define FPS 60
+
+Session::Session() {
+    label = Label::getInstance(this);
+}
+
+Session::~Session() {
+    delete label;
+    for (Component* c : comps) {
+        delete c;
+    }
+    comps.clear();
+}
+
+void Session::add(Component* comp) {
+    added.push_back(comp);
+}
+
+void Session::remove(Component* comp) {
+    removed.push_back(comp);
+}
+
+void Session::addCollisionfunc(std::function&lt;bool(const SDL_Rect&amp;,const SDL_Rect&amp;)&gt; func)
+{
+    fCollide = func;
+}
+
+void Session::run() {
+    bool quit = false;
+    Uint32 tickInterval = 1000 / FPS;
+    while (!quit) {
+        Uint32 nextTick = SDL_GetTicks() + tickInterval;
+        SDL_Event event;
+        while (SDL_PollEvent(&amp;event)) {
+            if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                case SDL_QUIT: quit = true; break;
+                default: for (Component* c : comps) { c-&gt;handleKeyDown(event.key.keysym.sym); } break;
+                case SDLK_1:
+                    quit = true;
+                    event.quit;
+                    break;
+                }
+            }
+        }
+
+        for (Component* c : comps) {
+            c-&gt;updateTime();
+            c-&gt;tick();
+        }
+        for (Component* c : comps) {
+            for (Component* c2 : comps) {
+                if (c == c2)
+                    continue;
+                    //Egen kollisionsdetekterings class med funktion
+                    bool res = fCollide(c-&gt;getRect(), c2-&gt;getRect());
+                    if (res == true &amp;&amp; c-&gt;isCollidable()) {
+                                label-&gt;setText(to_string(points+=1));
+                                decreaseEnemies();
+                        remove(c2);
+                        remove(c);
+                    }
+            }
+        }
+
+        for (Component* c : added) {
+            comps.push_back(c);
+            added.clear();
+        }
+
+        for (Component* c : removed) {
+            for (vector&lt;Component*&gt;::iterator i = comps.begin();
+                i != comps.end();)
+                if (*i == c) {
+                    delete *i;
+                    i = comps.erase(i);
+                }
+                else
+                    i++;
+            removed.clear();
+        }
+
+        SDL_SetRenderDrawColor(sys.ren, 0, 0, 0, 0);
+        SDL_RenderClear(sys.ren);
+        for (Component* c : comps)
+            c-&gt;draw();
+        label-&gt;draw();
+        SDL_RenderPresent(sys.ren);
+        int delay = nextTick - SDL_GetTicks();
+        if (delay &gt; 0)
+            SDL_Delay(delay);
+
+    }
+}
+                    </code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <p>
+                The game I took inspiration from when I created mine is of course Spaceinvaders.
+                The player is the green sprite at the bottom,
+                you can move with the keys "a" for the left and "d" for right and "space" for shooting.
+                You try to shoot the enemies that come from the top of the screen.
+                When you kill an enemy, it is added to your points at the top left.
+                If all enemies are killed on the screen, new enemies will appear at the top.
+                This continues until the player is hit by an enemy shot which immediately kills the player.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <h3>The process</h3>
+            <p>
+                I was a bit stressed working on the project because
+                simultaneously as the game was made I was studying for the course exam
+                that had the same deadline as the game,
+                but I learned a lot of c/c++ and it was a lot of fun.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Challenges</h3>
+            <p>
+                It was a big challenge to previously only programmed games with c#
+                and an engine to a new language and no engine.
+                The other big challenge was to manage memory leakage.
+                I downloaded a tool called Deleaker to easier spot different leakages
+                I had until I finally managed to get rid of every single one.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Iteration</h3>
+            <p>
+                Of course, I could have done much more with the game but because I was learning c/c++ and
+                studying for an exam at the same time I am pleased with how it turned out.
+            </p>
+        </div>
+
+        <a href="../projects.html" class="back-link">← Back to Projects</a>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Andreas Berzelius. All rights reserved.</p>
+    </footer>
+</body>
+</html>

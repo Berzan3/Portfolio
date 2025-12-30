@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel surgeon - Dev Portfolio</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="../js/main.js" defer></script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Andreas Berzelius</h1>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../projects.html" class="active">Projects</a></li>
+                    <li><a href="../cv.html">CV</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="project-detail">
+        <div class="detail-header">
+            <h2>Pixel Surgeon</h2>
+            <h3>made back in around 2020</h3>
+            <p class="tagline">A 2D surgeon game</p>
+            <div class="project-tags">
+                <span class="tag">Unity</span>
+                <span class="tag">C#</span>
+                <span class="tag">PC</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="media-grid">
+                <div class="media-item">
+                    <video controls>
+                        <source src="../assets/pixel_surgeon/pixel_surgeon_demo_video.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Overview</h3>
+            <p>
+                Pixel surgeon is a learning game about the body's anatomy sitting in a 2d operating room.
+                Inspired by games like Surgeon Simulator and the board game Operation.
+                The game is intended for a broad target group as there is some blood in the game about 8 years and up.
+                The game is that the player is a surgeon who must perform different transplants of different body parts.
+                The level of difficulty in the game is stepped up in the form of the player having to replace more and more organs (maximum 3).
+                When the player cuts off organs or limbs, the patient starts bleeding differently depending on which part of the body is lost,
+                as you can see on a blood Monitor in the lower right corner of the screen and how much blood may be lost until the patient dies.
+                The player uses the saw to cut off limbs, the chapel to cut loss organs and open up the torso and needle to sew everything back.
+                When the player has cut loss the bad body part and replaced it with a healthy body part and
+                then sewed everything together without the patient losing too much blood,
+                the player has passed surgery and presenters then with a rating on its effort. If the player fails,
+                he also gets a rating. The grading system goes from F to A and
+                depends on how much blood the patient has lost and how correct the placement of the healthy body part is.
+                In addition to teaching about the body's anatomy,
+                we list a couple of fun facts about each of the body parts that you can read if you press "Organ info" up to the left and click or have clicked on a body part.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Notable stuff</h3>
+            <div class="workflow-list">
+                <ul>
+                    <li>creating the Controls script</li>
+                    <li>making the script for the bleeding</li>
+                    <li>blood particles</li>
+                    <li>creating sounds, specifically the "plop" sound</li>
+                    <li>animations</li>
+                    <li>Development time was 2 weeks</li>
+                    <li>The team size was 3</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>My tasks</h3>
+            <p>
+            My role I worked on was mainly to create the controls for the game and handle input, but I also made a script to handle when the patient should start or
+            stop bleeding on those different blood positions on the body that chose the arms,
+            legs and torso.
+            Then I also modified the blood-particle effect that bleeds on the different blood positions and
+            made a short animation and sound effect for when the player gets his rating.
+            </p>
+            <h4>controls</h4>
+            <p>
+            Controls are based on the new input system and are then the script that handles the player's input and is the controller for the player.
+            The actions the player can do in the game are then: pick up body parts / tools, rotate tools and sew / cut.
+            The controls for performing these actions are based entirely on the mouse and include: left-click to click and hold objects,
+            right-click to use the tool you are holding, and scroll wheel to rotate tools 90 degrees at a time.
+            Picking up objects is then done with the help of a RaycastAll which its hit list sorts according to stock order and
+            whether it is a tool or body part to decide what to pick up.
+            It is necessary to remove bugs and annoying moments such as picking up something that is on the bottom even though it is slightly above that object.
+            Using a tool is managed with the help of a switch kit which, depending on which tool was used,
+            sends an event with the body part on which it was used. This is listened to by the Bodypart script,
+            which decides whether the body part should be removed or inserted.
+            Rotate is managed by first checking if you are holding something and if it is a tool.
+            Then you check if the mouse rotates up or down and depending on this rotate +90 degrees or -90 degrees.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+            <div class="code-container" style="display: none;">
+                <p>Controls.cs:</p>
+                <div class="code-snippet">
+                    <pre><code>
+namespace Player
+{
+  public class Controls : MonoBehaviour
+  {
+                          public static Action&lt;GameObject&gt; OnCutEvent,
+          OnSawEvent,
+          OnSewnEvent,
+          OnBodyPartPickupEvent,
+          OnToolPickupEvent,
+          OnDropBodyPartEvent,
+          OnDropToolEvent;
+
+      public static Action OnToolRotateEvent;
+
+      [SerializeField] private LayerMask mask;
+      private Camera _camera;
+      private PlayerActionsScript _controls;
+      private GameObject _heldObj;
+      private SpriteRenderer _heldObjSpriteRen;
+      private bool _isHolding;
+      private Vector2 _mousePos;
+      private int _oldSortOrder;
+      private float _startPosX, _startPosY;
+
+      private void Awake()
+      {
+          _controls = new PlayerActionsScript();
+          _camera = Camera.main;
+      }
+
+      private void Start()
+      {
+          _controls.Player.Scroll.performed += Scroll;
+                              _controls.Player.LeftClick.started += _ =&gt; LeftClick();
+                              _controls.Player.LeftClick.performed += _ =&gt; LeftClickRelease();
+                              _controls.Player.RightClick.performed += _ =&gt; RightClick();
+      }
+
+      private void Update()
+      {
+          if (_isHolding) HoldObj();
+      }
+
+      private void OnEnable()
+      {
+          _controls.Enable();
+      }
+
+      private void OnDisable()
+      {
+          _controls.Disable();
+      }
+
+      private void Scroll(InputAction.CallbackContext ctx)
+      {
+                              if (_isHolding &amp;&amp; _heldObj.layer == 8) Rotate(ctx);
+      }
+
+      private void LeftClickRelease()
+      {
+          {
+              if (_heldObj == null) return;
+              _isHolding = false;
+              _heldObj.transform.localScale = new Vector3(1f, 1f, 1f);
+              _heldObjSpriteRen.sortingOrder = _oldSortOrder;
+              switch (_heldObj.layer)
+              {
+                  case 8:
+                      OnDropToolEvent?.Invoke(_heldObj);
+                      break;
+                  case 9:
+                      OnDropBodyPartEvent?.Invoke(_heldObj);
+                      break;
+              }
+
+              _heldObj = null;
+          }
+      }
+
+      private void RightClick()
+      {
+          if (_heldObj == null) return;
+          switch (_heldObj.name)
+          {
+              case "Saw":
+                                      OnSawEvent?.Invoke(_heldObj.GetComponent&lt;Tool.Tool&gt;().GetBodyPart());
+                  break;
+              case "Scalpel":
+                                      OnCutEvent?.Invoke(_heldObj.GetComponent&lt;Tool.Tool&gt;().GetBodyPart());
+                  break;
+              case "Sewingkit":
+                                      OnSewnEvent?.Invoke(_heldObj.GetComponent&lt;Tool.Tool&gt;().GetBodyPart());
+                  break;
+          }
+      }
+
+      private void LeftClick()
+      {
+                              _mousePos = _controls.Player.Mouseposition.ReadValue&lt;Vector2&gt;();
+          _mousePos = _camera.ScreenToWorldPoint(_mousePos);
+          var hits = Physics2D.RaycastAll(_mousePos, Vector2.zero, 0f, mask);
+                              var gameobjects = hits.Where(hit =&gt; hit.collider.gameObject.activeSelf)
+                                  .Select(hit =&gt; hit.collider.gameObject).ToArray();
+                              if (gameobjects.Length &lt;= 0) return;
+          _heldObj = (
+              from
+                  item in gameobjects
+              orderby
+                                      item.transform.GetChild(0).GetComponent&lt;SpriteRenderer&gt;()?.sortingLayerID,
+                                      item.transform.GetChild(0).GetComponent&lt;SpriteRenderer&gt;()?.sortingOrder descending
+              where
+                                      mask == (mask | (1 &lt;&lt; item.transform.gameObject.layer))
+              select
+                  item.transform.gameObject
+          ).ToArray().First();
+
+                              if (_heldObj.layer == 9 &amp;&amp; _heldObj.GetComponent&lt;BodyPart&gt;().IsAttached())
+          {
+              _heldObj = null;
+              return;
+          }
+
+                              _heldObjSpriteRen = _heldObj.transform.GetChild(0).GetComponent&lt;SpriteRenderer&gt;();
+          _oldSortOrder = _heldObjSpriteRen.sortingOrder;
+          _heldObjSpriteRen.sortingOrder = 10;
+
+          switch (_heldObj.layer)
+          {
+              //layer 8 == Tools
+              case 8:
+                  _startPosX = 0;
+                  _startPosY = 0;
+                  OnToolPickupEvent?.Invoke(_heldObj);
+                  break;
+              //layer 9 == Organs
+              case 9:
+                  _startPosX = _mousePos.x - _heldObj.transform.position.x;
+                  _startPosY = _mousePos.y - _heldObj.transform.position.y;
+                  OnBodyPartPickupEvent?.Invoke(_heldObj);
+                  break;
+          }
+
+          _heldObj.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+          _isHolding = true;
+      }
+
+      private void HoldObj()
+      {
+                              _mousePos = _controls.Player.Mouseposition.ReadValue&lt;Vector2&gt;();
+          _mousePos = _camera.ScreenToWorldPoint(_mousePos);
+          _heldObj.transform.position = new Vector3(_mousePos.x - _startPosX, _mousePos.y - _startPosY, 0);
+      }
+
+      private void Rotate(InputAction.CallbackContext ctx)
+      {
+          OnToolRotateEvent?.Invoke();
+                              if (ctx.ReadValue&lt;Vector2&gt;().y &gt; 0)
+              _heldObj.transform.Rotate(Vector3.forward, 90f);
+          else
+              _heldObj.transform.Rotate(Vector3.forward, -90f);
+      }
+  }
+}
+                    </code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>BleedSpotManager</h4>
+            <p>
+                Manages whether the patient should start bleeding or stop bleeding at the different blood positions.
+                This is done first with the help of a dictionary entering the names of the body parts as keys and the blood positions as values.
+                The organs are commonly represented by a blood position "Thorax".
+                Then, when a tool is used a function is started in the script that checks which tool was used and which body part it was used on
+                and depending on this start or
+                stop the bleeding at the different blood positions.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <button class="btn btn-small show-code-btn" onclick="toggleCode(this)">Show Code</button>
+            <div class="code-container" style="display: none;">
+                <p>BleedSpotManager.cs:</p>
+                <div class="code-snippet">
+                    <pre><code>
+public class BleedSpotManager : MonoBehaviour
+{
+  Dictionary&lt;string, ParticleSystem&gt; _bleedSpots;
+  private string[] _bleedSpotNames = { "ArmLeft", "ArmRight", "RightLeg", "LeftLeg", "Thorax" };
+  private int _currentdetachedOrgans;
+
+  private void Awake()
+  {
+      _bleedSpots = new Dictionary&lt;string, ParticleSystem&gt;();
+
+      for (int i = 0; i &lt; transform.childCount; i++)
+      {
+          _bleedSpots.Add(_bleedSpotNames[i], transform.GetChild(i).GetComponent&lt;ParticleSystem&gt;());
+      }
+      BodyPart.OnToolUsedEvent += ToolUsed;
+  }
+
+  private void OnDestroy()
+  {
+      BodyPart.OnToolUsedEvent = null;
+  }
+
+  private void ToolUsed(BodyPart bp, string tool)
+  {
+
+      if (bp.name == "Ribcage") return;
+
+      if (bp.tag == "Organ")
+      {
+          if (tool == "Scalpel")
+          {
+              _currentdetachedOrgans++;
+              _bleedSpots["Thorax"].Play();
+              return;
+          }
+          else if (tool == "Sewingkit")
+          {
+              if (_currentdetachedOrgans - 1 == 0)
+              {
+                  _currentdetachedOrgans--;
+                  _bleedSpots["Thorax"].Stop();
+                  return;
+              }
+              _currentdetachedOrgans--;
+              return;
+          }
+      }
+      else
+      {
+          if (tool == "Sewingkit")
+          {
+              _bleedSpots[bp.name].Stop();
+              return;
+          }
+          else
+          {
+              if (!_bleedSpots[bp.name].isPlaying)
+                  _bleedSpots[bp.name].Play();
+              return;
+          }
+      }
+
+  }
+
+}
+                    </code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>Miscellaneous</h4>
+            <p>
+                I made an animation that visualizes that the grade slides and fades into the screen.
+                Then I also made a slightly comical almost fart-like sound that is played in connection with the animation.
+            </p>
+        </div>
+
+        <div class="detail-section">
+            <h3>The process</h3>
+            <p>This was a small but fun 2d project to make! The goal of the project was to make a learning game.</p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Challenges</h3>
+            <p>The biggest challenge for me was to make the Controls work as intended.</p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Iteration</h3>
+            <p>
+                We were sure that we wanted to teach about the anatomy of the body from the beginning,
+                but if we were to teach basic information about the different parts of the body,
+                we changed it to short fun facts, as we judged that it would be very boring to just sit and read paragraphs of facts.
+                Other things we changed about were the number of tools and whether the player could do brain transplants.
+                We considered brain transplants to be too unrealistic as we still try to relate to some form of semi-realism in the game.
+                The second was that we were content with only three tools because if we had added more, we think it would have been too cumbersome to keep track of.
+                Certain things got reworked under the project but i am pleased about how it turned out and the work me and my colleagues put into the project.
+                In the end i learned more about working on 2D projects in Unity.
+            </p>
+        </div>
+
+        <a href="../projects.html" class="back-link">← Back to Projects</a>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Andreas Berzelius. All rights reserved.</p>
+    </footer>
+</body>
+</html>
